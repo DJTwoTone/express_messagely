@@ -54,7 +54,7 @@ router.get("/", async function(req, res, next) {
 
 router.get("/:username/to", async function(req, res, next) {
     try {
-        username = req.params.username
+        const username = req.params.username
         const messages = await User.messagesTo(username);
 
         return res.json({ messages })
@@ -75,5 +75,15 @@ router.get("/:username/to", async function(req, res, next) {
  *                 to_user: {username, first_name, last_name, phone}}, ...]}
  *
  **/
+router.get("/:username/from", async function(req, res, next) {
+    try {
+        const username = req.params.username
+        const messages = await User.messagesFrom(username);
+
+        return res.json({ messages })
+    } catch (e) {
+        next(e)
+    }
+})
 
  module.exports = router

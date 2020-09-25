@@ -102,30 +102,28 @@ class User {
 
 
 
-  // static async messagesFrom(username) {
+  static async messagesFrom(username) {
+    const messages = await db.query(
+      `SELECT m.id, m.to_username, m.body, m.sent_at, m.read_at, u.username, u.first_name, u.last_name, u.phone
+      FROM messages AS m
+      JOIN users AS u
+      ON m.to_username = u.username
+      WHERE from_username=$1`, [username]
+    )
 
-  //   const results = await db.query(
-  //     `SELECT id, to_username as to_user, body, sent_at, read_at
-  //     FROM messages
-  //     WHERE from_username=$1`,
-  //     [username]
-  //   );
-  //   const user = await db.query(
-  //     `SELECT username, first_name, last_name, phone
-  //     FROM users
-  //     WHERE username=$1`,
-  //     [username]
-  //   )
-
-  //   results.rows.map(r => r.to_user = await db.query(
-  //     `SELECT username, first_name, last_name, phone
-  //     FROM users
-  //     WHERE username=$1`, [r.to_user]
-  //   ))
-
-  //   return results.rows
-
-  //  }
+    return messages.rows.map(m => ({
+      id: m.id,
+      from_user: {
+        username: m.to_username,
+        first_name: m.first_name,
+        last_name: m.last_name,
+        phone: m.phone
+      },
+      body: m.body,
+      sent_at: m.sent_at,
+      read_at: m.read_at
+    }))
+   }
 
   /** Return messages to this user.
    *
@@ -136,21 +134,26 @@ class User {
    */
 
   static async messagesTo(username) {
-    const results = await db.query(
-      `SELECT id, from_username as from_user, body, sent_at, read_at
-      FROM messages
+    const messages = await db.query(
+      `SELECT m.id AS message_id, m.from_username, m.body, m.sent_at, m.read_at, u.username, u.first_name, u.last_name, u.phone
+      FROM messages AS m
+      JOIN users AS u
+      ON m.from_username = u.username
       WHERE to_username=$1`, [username]
     )
-    // results.rows.map(r =>  r.from_user = 'butt')
-    results.rows.map(async r =>  r.from_user = await db.query(
-      `SELECT id, first_name, lastname, phone
-      FROM users
-      WHERE username=$1`, [r.from_user]
-    ))
-      
-    // results.rows.map(r => console.log(r.from_user))
 
-    return results.rows
+    return messages.rows.map(m => ({
+      id: m.message_id,
+      from_user: {
+        username: m.from_username,
+        first_name: m.first_name,
+        last_name: m.last_name,
+        phone: m.phone
+      },
+      body: m.body,
+      sent_at: m.sent_at,
+      read_at: m.read_at
+    }))
    }
 }
 

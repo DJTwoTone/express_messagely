@@ -1,3 +1,11 @@
+const express = require("express");
+const ExpressError = require("../expressError");
+
+const Message = require("../models/message")
+
+const router = new express.Router()
+
+
 /** GET /:id - get detail of message.
  *
  * => {message: {id,
@@ -11,6 +19,17 @@
  *
  **/
 
+ router.get("/:id", async function(req, res, next) {
+     try {
+        const messId = req.params.id;
+        const message = await Message.get(messId)
+        return res.json({ message })
+
+     } catch (e) {
+         next(e);
+     }
+ })
+
 
 /** POST / - post message.
  *
@@ -18,6 +37,14 @@
  *   {message: {id, from_username, to_username, body, sent_at}}
  *
  **/
+
+ router.post("/" async function(req, res, next) {
+     try {
+         
+     } catch (e) {
+         nexy(e)
+     }
+ })
 
 
 /** POST/:id/read - mark message as read:
@@ -28,3 +55,4 @@
  *
  **/
 
+module.exports = router
