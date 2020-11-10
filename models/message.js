@@ -83,13 +83,13 @@ class Message {
         username: m.from_username,
         first_name: m.from_first_name,
         last_name: m.from_last_name,
-        phone: m.from_phone,
+        phone: m.from_phone
       },
       to_user: {
         username: m.to_username,
         first_name: m.to_first_name,
         last_name: m.to_last_name,
-        phone: m.to_phone,
+        phone: m.to_phone
       },
       body: m.body,
       sent_at: m.sent_at,

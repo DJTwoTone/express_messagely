@@ -1,4 +1,4 @@
-\c messagely
+-- \c messagely
 
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS users;

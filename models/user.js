@@ -4,7 +4,7 @@ const express = require("express");
 const router = new express.Router();
 const ExpressError = require("../expressError")
 const db = require("../db")
-const bcypt = require("bcrypt");
+const bcrypt = require("bcrypt");
 const { BCRYPT_WORK_FACTOR } = require("../config")
 
 
@@ -17,13 +17,14 @@ class User {
    */
 
   static async register({username, password, first_name, last_name, phone}) {
-    const hashedPassword = await bcypt.hash(password, BCRYPT_WORK_FACTOR)
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR)
     const result = await db.query(
-      `INSERT INTO users (username, password, first_name, last_name, phone)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING username, first_name, last_name, phone`,
+      `INSERT INTO users (username, password, first_name, last_name, phone, join_at, last_login_at)
+      VALUES ($1, $2, $3, $4, $5, current_timestamp, current_timestamp)
+      RETURNING username, password, first_name, last_name, phone`,
       [username, hashedPassword, first_name, last_name, phone]
       );
+      // console.log(result.rows)
       return result.rows[0]
     }
     
@@ -49,13 +50,17 @@ class User {
     /** Update last_login_at for user */
 
   static async updateLoginTimestamp(username) {
-    const timeStamp = new Date(Date.now()).toISOString();
+    // const timeStamp = new Date(Date.now()).toISOString();
     const result = await db.query(
       `UPDATE users 
-      SET last_login_at=$1 
-      WHERE username=$2 
-      RETURNING username, last_login_at`, [timeStamp, username]
+      SET last_login_at = current_timestamp
+      WHERE username=$1
+      RETURNING username`, [username]
     )
+    if (!result.rows[0]) {
+      throw new ExpressError(`Username ${username} not found`, 404)
+    }
+
     return result.rows[0];
 
    }
@@ -87,7 +92,6 @@ class User {
       WHERE username=$1`,
       [username]
     );
-    console.log(result.rows[0])
     return result.rows[0]
    }
 
@@ -113,7 +117,7 @@ class User {
 
     return messages.rows.map(m => ({
       id: m.id,
-      from_user: {
+      to_user: {
         username: m.to_username,
         first_name: m.first_name,
         last_name: m.last_name,

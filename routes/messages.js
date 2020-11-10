@@ -22,7 +22,12 @@ const router = new express.Router()
  router.get("/:id", async function(req, res, next) {
      try {
         const messId = req.params.id;
-        const message = await Message.get(messId)
+        const username = req.user.username;
+        const message = await Message.get(messId);
+
+        if (message.to_user.username !== username && message.from_user.username !== username) {
+            throw new ExpressError("Access to message denied", 401);
+        }
         return res.json({ message })
 
      } catch (e) {
@@ -38,11 +43,17 @@ const router = new express.Router()
  *
  **/
 
- router.post("/" async function(req, res, next) {
+ router.post("/", async function(req, res, next) {
      try {
-         
+        let message = await Message.create({
+            from_username: req.user.username,
+            to_username: req.body.to_username,
+            body: req.body.body
+        });
+
+        return res.json({ message })
      } catch (e) {
-         nexy(e)
+         next(e)
      }
  })
 
@@ -54,5 +65,23 @@ const router = new express.Router()
  * Make sure that the only the intended recipient can mark as read.
  *
  **/
+
+ router.post("/:id/read", async function (req, res, next) {
+     try {
+         let msgId = req.params.id;
+         let username = req.user.username;
+         let msg = await Message.get(req.params.id);
+
+         if (msg.to_user.username !== username) {
+             throw new ExpressError("Access to this message denied", 401);
+         }
+
+         let message = await Message.markRead(msgId);
+
+         return res.json({ message })
+     } catch (e) {
+         return next(e);
+     }
+ })
 
 module.exports = router
